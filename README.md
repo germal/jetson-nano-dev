@@ -1,14 +1,33 @@
 # Setting
 
+## Env
+
+```
+OS : Ubuntu 18.04
+JetPack 4.4
+CUDA : 10.2.89
+cuDNN : 8.0.0
+```
+
 ## Installation
 
-1. Write Image to the microSD Card
-   [Reference Link](https://developer.nvidia.com/embedded/learn/get-started-jetson-nano-devkit#write)
+1. Download JetPack SDK
+- [JetPack SDK](https://developer.nvidia.com/embedded/jetpack#install)
+- Download the SD Card Image and NVIDIA SDK Manager.
+- Write Image to the microSD card and install Jetson software with SDK Manager ([Reference Link](https://developer.nvidia.com/embedded/learn/get-started-jetson-nano-devkit#write))
 
 ```sh
-sudo -H pip install jetson-stats
+# https://github.com/rbonghi/jetson_stats
+sudo -H pip install -U jetson-stats
+
+# status and information 
 jetson_release
+
+# system monitoring
+jtop 
 ```
+
+jetson-stats is a package to monitoring and control your NVIDIA Jetson. It is require to reboot.
 
 2. CUDA path
 
@@ -17,9 +36,33 @@ echo "# Add CUDA bin & library paths:" >> ~/.bashrc
 echo "export PATH=/usr/local/cuda/bin:$PATH" >> ~/.bashrc
 echo "export LD_LIBRARY_PATH=/usr/local/cuda/lib:$LD_LIBRARY_PATH" >> ~/.bashrc
 source ~/.bashrc
+
+nvcc -V
 ```
 
-3. Install tensorflow
+3. Python
+
+```
+wget https://bootstrap.pypa.io/get-pip.py
+sudo python3 get-pip.py
+rm get-pip.py
+```
+
+4. virtualenv
+
+```sh
+sudo -H pip install virtualenv virtualenvwrapper
+
+echo "# virtualenv & virtualenvwrapper" >> ~/.bashrc
+echo "export WORKON_HOME=$HOME/virtualenvs" >> ~/.bashrc
+echo "export VIRTUALENVWRAPPER_PYTHON=/usr/bin/python3" >> ~/.bashrc
+echo "source /usr/local/bin/virtualenvwrapper.sh" >> ~/.bashrc
+source ~/.bashrc
+
+mkvirtualenv {env_name} -p python3
+```
+
+4. Install tensorflow
 
 ```sh
 sudo apt-get install python3-pip
@@ -40,17 +83,24 @@ $ sudo pip3 install --pre --extra-index-url https://developer.download.nvidia.co
 - torch
 
 ```sh
-wget https://nvidia.box.com/shared/static/ncgzus5o23uck9i5oth2n8n06k340l6k.whl -O torch-1.4.0-cp36-cp36m-linux_aarch64.whl
+wget https://nvidia.box.com/shared/static/3ibazbiwtkl181n95n9em3wtrca7tdzp.whl -O torch-1.5.0-cp36-cp36m-linux_aarch64.whl
 sudo apt-get install python3-pip libopenblas-base
 pip3 install Cython
 pip3 install numpy torch-1.4.0-cp36-cp36m-linux_aarch64.whl
+```
+
+```python
+import torch
+print(torch.__version__)
+print('CUDA available: ' + str(torch.cuda.is_available()))
+print('cuDNN version: ' + str(torch.backends.cudnn.version()))
 ```
 
 - torchvision
 
 ```
 sudo apt-get install libjpeg-dev zlib1g-dev
-git clone --branch v0.5.0 https://github.com/pytorch/vision torchvision   # see below for version of torchvision to download
+git clone --branch v0.6.0 https://github.com/pytorch/vision torchvision   # see below for version of torchvision to download
 cd torchvision
 sudo python setup.py install
 cd ../  # attempting to load torchvision from build dir will result in import error
@@ -87,7 +137,7 @@ sudo nvpmodel -q
 ## Requirements
 
 ```sh
-sudo apt istall cmake
+sudo apt install git cmake libatlas-base-dev gfortran libhdf5-serial-dev hdf5-tools python3-dev
 ```
 
 ## Install & Build
@@ -113,6 +163,38 @@ opencv_version
 ## Link
 
 - [JetsonHacks](https://www.jetsonhacks.com/2019/11/22/opencv-4-cuda-on-jetson-nano/)
+
+# RealSense Camera
+
+## Installation
+
+```sh
+sudo apt-get install git libssl-dev libusb-1.0-0-dev pkg-config libgtk-3-dev
+sudo apt-get install libglfw3-dev libgl1-mesa-dev libglu1-mesa-dev
+
+git clone git clone https://github.com/IntelRealSense/librealsense.git
+cd librealsense
+mkdir build
+cd build
+cmake ../ -DBUILD_EXAMPLES=true -DFORCE_LIBUVC=true -DBUILD_WITH_CUDA=true -DCMAKE_BUILD_TYPE=release -DBUILD_BINDINGS=bool:true
+make -j{NUM_CPU}
+sudo make install
+
+echo "export PYTHONPATH=$PYTHONPATH:/usr/local/lib" >> ~/.bashrc
+
+# copy udev rules so that camera can be from user space
+sudo cp config/99-realsense-libusb.rules /etc/udev/rules.d/
+sudo udevadm control --reload-rules && udevadm trigger
+
+./scripts/patch-realsense-ubuntu-lts.sh
+
+sudo apt-key adv --keyserver keys.gnupg.net --recv-key F6E65AC044F831AC80A06380C8B3A55A6F3EFCDE || sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-key F6E65AC044F831AC80A06380C8B3A55A6F3EFCDE
+
+sudo add-apt-repository "deb http://realsense-hw-public.s3.amazonaws.com/Debian/apt-repo bionic main" -u
+
+sudo apt-get install librealsense2-utils
+sudo apt-get install librealsense2-dev
+```
 
 # RPi Camera
 
@@ -156,57 +238,11 @@ crw-rw----+ 1 root video 81, 0  4월 18 13:43 /dev/video0
 gst-launch-1.0 nvarguscamerasrc ! nvoverlaysink
 ```
 
-```sh
-Setting pipeline to PAUSED ...
-Pipeline is live and does not need PREROLL ...
-Setting pipeline to PLAYING ...
-New clock: GstSystemClock
-GST_ARGUS: Creating output stream
-CONSUMER: Waiting until producer is connected...
-GST_ARGUS: Available Sensor modes :
-GST_ARGUS: 3264 x 2464 FR = 21.000000 fps Duration = 47619048 ; Analog Gain range min 1.000000, max 10.625000; Exposure Range min 13000, max 683709000;
-
-GST_ARGUS: 3264 x 1848 FR = 28.000001 fps Duration = 35714284 ; Analog Gain range min 1.000000, max 10.625000; Exposure Range min 13000, max 683709000;
-
-GST_ARGUS: 1920 x 1080 FR = 29.999999 fps Duration = 33333334 ; Analog Gain range min 1.000000, max 10.625000; Exposure Range min 13000, max 683709000;
-
-GST_ARGUS: 1280 x 720 FR = 59.999999 fps Duration = 16666667 ; Analog Gain range min 1.000000, max 10.625000; Exposure Range min 13000, max 683709000;
-
-GST_ARGUS: 1280 x 720 FR = 120.000005 fps Duration = 8333333 ; Analog Gain range min 1.000000, max 10.625000; Exposure Range min 13000, max 683709000;
-
-GST_ARGUS: Running with following settings:
-   Camera index = 0 
-   Camera mode  = 2 
-   Output Stream W = 1920 H = 1080 
-   seconds to Run    = 0 
-   Frame Rate = 29.999999 
-GST_ARGUS: PowerService: requested_clock_Hz=13608000
-GST_ARGUS: Setup Complete, Starting captures for 0 seconds
-GST_ARGUS: Starting repeat capture requests.
-CONSUMER: Producer has connected; continuing.
-^Chandling interrupt.
-Interrupt: Stopping pipeline ...
-Execution ended after 0:00:23.747806781
-Setting pipeline to PAUSED ...
-Setting pipeline to READY ...
-GST_ARGUS: Cleaning up
-CONSUMER: Done Success
-GST_ARGUS: Done Success
-Setting pipeline to NULL ...
-Freeing pipeline ...
-GST_ARGUS: 
-PowerServiceHwVic::cleanupResources
-```
-
 Camera와 Interface 하는데에 GStreamer가 사용된다. 위의 명령어를 실행하면 창에 카메라 이미지가 출력되는 것을 확인할 수 있다.
 
 ```sh
 gst-launch-1.0 nvarguscamerasrc ! 'video/x-raw(memory:NVMM),width=3820, height=2464, framerate=21/1, format=NV12' ! nvvidconv flip-method=0 ! 'video/x-raw,width=960, height=616' ! nvvidconv ! nvegltransform ! nveglglessink -e
 ```
-
-# RealSense Camera
-
-## Installation
 
 # Notes
 

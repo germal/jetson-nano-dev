@@ -176,7 +176,7 @@ git clone git clone https://github.com/IntelRealSense/librealsense.git
 cd librealsense
 mkdir build
 cd build
-cmake ../ -DBUILD_EXAMPLES=true -DFORCE_LIBUVC=true -DBUILD_WITH_CUDA=true -DCMAKE_BUILD_TYPE=release -DBUILD_BINDINGS=bool:true
+cmake ../ -DBUILD_EXAMPLES=true -DFORCE_LIBUVC=true -DBUILD_WITH_CUDA=true -DCMAKE_BUILD_TYPE=release -DBUILD_PYTHON_BINDINGS=bool:true
 make -j{NUM_CPU}
 sudo make install
 
@@ -198,39 +198,36 @@ sudo apt-get install librealsense2-dev
 
 # RPi Camera
 
-Jetson 제품군은 보통 MIPI-CSI 카메라를 지원한다.
-`MIPI(Mobile Industry Processor Interface)`
-`CSI(Camera Serial Interface)`
-
-> MIPI
+Jetson products usually support `MIPI-CSI` camera.
+> `MIPI(Mobile Industry Processor Interface)` 
+>
 > : 모바일 기기의 내부 인터페이스. 프로세서와 주변 장치들 사이의 HW와 SW를 연결하는 Serial Interface 규격
 > - 고속의 디지털 Serial Interface로, 아날로그 Interface에 비해 적용하기 쉽다.
 > - 배터리 소모량을 줄이고 높은 대역폭을 통해 고속의 신호 전송이 가능
 
-> CSI
+> `CSI(Camera Serial Interface)`
+>
 > : Camera를 Control 하는 Device는 I2C 버스를 사용해 카메라를 컨트롤하고, 카메라에서 촬영한 이미지는 S-LVDS를 통해 전달 받는다. 
 
 > MIPI CSI-2는 현재 스마트폰 카메라 Interface를 위해 주로 사용하는 방식으로, Protocol Layer로 CSI-2를 사용하고 Physical Layer로는 D-PHY를 사용한다. 이 프로토콜은 Camera와 Host 장치 간의 고속 전송을 위한 것이다. 프로세서에 직접 연결되기 때문에 USB 연결보다 적은 오버헤드를 갖는다. 
 
-Jetson Nano에는 RPi 카메라 호환 Connector가 있고, IMX 219의 장치 드라이버가 설치되어 있어서 카메라만 연결하면 사용 가능하다.
-V1 RPi 카메라 모듈은 호환되지 않고 V2 RPi 카메라 모듈만 가능하다.
+Jetson nano has a connector compatible with RPi camera. A device driver of `IMX 291` is already installed and can be used by just connecting the camera. It is compatible with V2 RPi camera moddule not V1.
 
-(이미지 첨부)
+![rpi_camera_connect](./img/rpi-connect-1.jpg)
+![rpi_camera_connect](./img/rpi-connect-2.jpg)
 
-`J13` Camera Connector를 오픈하고 리본 케이블을 삽입한 후 Connector를 닫는다.
-파란색 면티 바깥쪽을 향해 있어야 한다.
-
-- Check camera connection
-
-```sh
-ls -al /dev/video0
-```
+1. Open the `J13` camera connector
+2. Insert the ribborn cable with the blue side facing out
+3. Close the connector
+4. Check the camera connection
 
 ```sh
+ls -al /dev/video*
+
 crw-rw----+ 1 root video 81, 0  4월 18 13:43 /dev/video0
 ```
 
-장치가 연결 됐는지 확인 할 수 있다. 나의 경우에는 연결 후 바로 인식이 되진 않고 5분 정도 기다린 후에야 인식이 됐다.
+You can check the device connection by `/dev/video`. It takes about 5 minuites in my case.
 
 - GStreamer Test
 
@@ -238,7 +235,7 @@ crw-rw----+ 1 root video 81, 0  4월 18 13:43 /dev/video0
 gst-launch-1.0 nvarguscamerasrc ! nvoverlaysink
 ```
 
-Camera와 Interface 하는데에 GStreamer가 사용된다. 위의 명령어를 실행하면 창에 카메라 이미지가 출력되는 것을 확인할 수 있다.
+`Gstreamer` is used to interface with camera. Check the camera image is displayed in the window using above command.
 
 ```sh
 gst-launch-1.0 nvarguscamerasrc ! 'video/x-raw(memory:NVMM),width=3820, height=2464, framerate=21/1, format=NV12' ! nvvidconv flip-method=0 ! 'video/x-raw,width=960, height=616' ! nvvidconv ! nvegltransform ! nveglglessink -e
@@ -252,13 +249,13 @@ gst-launch-1.0 nvarguscamerasrc ! 'video/x-raw(memory:NVMM),width=3820, height=2
 sudo apt install v4l-utils
 ```
 
-카메라 드라이버 개발할 때 간단한 제어를 하고 싶을 때 `v4l2-ctl` 사용. 
+Use `v4l2-ctl` for control when developing camera drivers.
 
 ```sh
 v4l2-ctl -d /dev/video0 --list-formats-ext
 ```
 
-특정 디바이스에 대한 지원 이미지 포맷과 해상도를 확인할 수 있다
+Check supported image foramts and resolutions for specific devices.
 
 # Gstreamer
 

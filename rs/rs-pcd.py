@@ -35,11 +35,10 @@ prevTime = 0
 pcd_app = PointCloudApp(profile)
 
 cv2.namedWindow(pcd_app.state.WIN_NAME, cv2.WINDOW_AUTOSIZE)
-# cv2.setMouseCallback(pcd_app.state.WIN_NAME, pcd_app.mouse_cb)
+cv2.setMouseCallback(pcd_app.state.WIN_NAME, pcd_app.mouse_cb)
 
 try:
     while True:
-
         # Wait for a coherent pair of frames: depth and color
         frames = pipeline.wait_for_frames()
 
@@ -57,8 +56,6 @@ try:
         # Convert images to numpy arrays
         depth_image = np.asanyarray(depth_frame.get_data())
         color_image = np.asanyarray(color_frame.get_data())
-
-        # Apply colormap on depth image (image must be converted to 8-bit per pixel first)
         # depth_colormap = cv2.applyColorMap(cv2.convertScaleAbs(depth_image, alpha=0.03), cv2.COLORMAP_JET)
         depth_colormap = np.asanyarray(colorizer.colorize(depth_frame).get_data())
 
@@ -67,7 +64,6 @@ try:
 
         # Stack both images horizontally
         images = np.hstack((color_image, depth_colormap))
-
 
         curTime = time.time()
         fps = 1 / (curTime - prevTime)
@@ -80,7 +76,6 @@ try:
         cv2.waitKey(1)
 
 finally:
-
     # Stop streaming
     pipeline.stop()
 

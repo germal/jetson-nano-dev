@@ -13,7 +13,7 @@ class PointCloudAppState:
         self.prev_mouse = 0, 0
         self.mouse_btns = [False, False, False]
         self.paused = False
-        self.decimate = 1
+        self.decimate = 1   # 0, 1, 2
         self.scale = True
         self.color = True
 
@@ -45,6 +45,8 @@ class PointCloudApp:
         self.decimate = rs.decimation_filter()
         self.decimate.set_option(rs.option.filter_magnitude, 2 ** self.state.decimate)
 
+    def reset(self):
+        self.state.reset()
 
     def update(self, color_frame, depth_frame, color_image, depth_colormap):
         depth_frame = self.decimate.process(depth_frame)
@@ -56,6 +58,9 @@ class PointCloudApp:
 
         points = self.pc.calculate(depth_frame)
         self.pc.map_to(color_frame)
+
+        # save point cloud data
+        # points.export_to_ply('./out.ply', mapped_frame)
 
         v, t = points.get_vertices(), points.get_texture_coordinates()
         verts = np.asanyarray(v).view(np.float32).reshape(-1, 3)
@@ -71,7 +76,6 @@ class PointCloudApp:
         
         return self.out
 
-    
     def mouse_cb(self, event, x, y, flags, param):
         if event == cv2.EVENT_LBUTTONDOWN:
             self.state.mouse_btns[0] = True
@@ -92,7 +96,7 @@ class PointCloudApp:
             self.state.mouse_btns[2] = False
 
         if event == cv2.EVENT_MOUSEMOVE:
-            dx, dy = self.x - self.state.prev_mouse[0], self.y - self.state.prev_mouse[1]
+            dx, dy = x - self.state.prev_mouse[0], y - self.state.prev_mouse[1]
 
             if self.state.mouse_btns[0]:
                 self.state.yaw += float(dx) / self.w * 2
@@ -201,7 +205,7 @@ class PointCloudApp:
             s = v[:, 2].argsort()[::-1]
             proj = self.project(v[s])
         else:
-            proj = self.project(view(verts))
+            proj = self.project(self.view(verts))
 
             # proj *= 0.5**state.decimate
 

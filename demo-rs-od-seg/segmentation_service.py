@@ -29,7 +29,8 @@ class SegmentationService(QtCore.QObject):
             np_seg = self.seg_model.inference(rgb_data, depth_data)
             seg_result = cv2.resize(class_from_instance(np_seg), dsize=(640, 480), interpolation=cv2.INTER_CUBIC)
             seg_overlay = segmentation_overlay(rgb_frame, np_seg, 0.5)
-            
+            seg_overlay = cv2.cvtColor(seg_overlay, cv2.COLOR_BGR2RGB)
+
             qt_seg_image = QtGui.QImage(seg_overlay.data, 640, 480, seg_overlay.strides[0], QtGui.QImage.Format_RGB888)
             
             self.seg_signal.emit(qt_seg_image)

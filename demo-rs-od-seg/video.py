@@ -17,7 +17,7 @@ class Video(QtCore.QObject):
         try:
             while True:
                 color_image, depth_image, depth_colormap = self.camera.get_frames()
-
+                
                 # display rgb image
                 color_image = cv2.cvtColor(color_image, cv2.COLOR_BGR2RGB)
                 height, width, channel = color_image.shape
@@ -48,16 +48,7 @@ class Video(QtCore.QObject):
         finally:
             self.camera.stop()
 
+    @QtCore.pyqtSlot()
     def stop(self):
-        self.realsense.stop()
+        self.camera.stop()
     
-    def _update_image_border(self, image):
-        pen = QtGui.QPen()
-        pen.setWidth(3)
-        pen.setColor(QtGui.QColor("red"))
-        
-        painter = QtGui.QPainter()
-        painter.begin(image)
-        painter.setPen(pen)
-        painter.drawRect(0, 0, image.width(), image.height())
-        painter.end()

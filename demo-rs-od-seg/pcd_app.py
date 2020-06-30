@@ -76,6 +76,15 @@ class PointCloudApp:
         
         return self.out
 
+    def qt_mouse_event(self, event):        
+        x = event.x()
+        y = event.y()
+
+        dx, dy = x - self.state.prev_mouse[0], y - self.state.prev_mouse[1]
+        self.state.yaw += float(dx) / self.w * 2
+        self.state.pitch -= float(dy) / self.h * 2
+
+        self.state.prev_mouse = (x, y)
 
     def mouse_cb(self, event, x, y, flags, param):
         if event == cv2.EVENT_LBUTTONDOWN:

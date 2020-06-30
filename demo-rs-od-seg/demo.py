@@ -69,6 +69,8 @@ if __name__ == '__main__':
     tracking_viewer = ImageViewer()
     table_viewer = TableViewer()
 
+    pcd_viewer.mouseMoveEvent = pcd.camera.pcd.qt_mouse_event
+
     grid_layout = QGridLayout()
     grid_layout.addWidget(rgb_viewer, 0, 0)
     grid_layout.addWidget(depth_viewer, 0, 1)

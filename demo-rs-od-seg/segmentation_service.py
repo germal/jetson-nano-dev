@@ -7,7 +7,7 @@ from segmentation.convert_my_data import reshape_nyu_rgb, reshape_sun_depth
 from segmentation.color_mapping import *
 from segmentation.segmentation_model import SegmentationModel
 from segmentation.npy_to_image import segmentation_overlay
-from config import *
+from config import SegConfig
 
 
 class SegmentationService(QtCore.QObject):
@@ -16,7 +16,7 @@ class SegmentationService(QtCore.QObject):
     def __init__(self, camera, parent=None):
         super(SegmentationService, self).__init__(parent)
         self.camera = camera
-        self.seg_model = SegmentationModel(running_model, on_gpu_seg, eval_mode)
+        self.seg_model = SegmentationModel(SegConfig.running_model, SegConfig.on_gpu, SegConfig.eval_mode)
 
     @QtCore.pyqtSlot()
     def start(self):

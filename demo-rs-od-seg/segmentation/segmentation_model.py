@@ -1,22 +1,21 @@
 import torch
 import torchfile
 import numpy as np
+from config import SegConfig
 from . import unet as un
-
-from config import *
 
 
 class SegmentationModel():
-    def __init__(self, model=running_model, on_gpu=on_gpu_seg, eval_mode=eval_mode):
+    def __init__(self, model, on_gpu=True, eval_mode=True):
         self.on_gpu = on_gpu
         self.eval_mode = eval_mode
 
         self.model = self.get_network(model)
     
     def get_network(self, model_path):
-        if model_path == (SUN_RGB_SCENENET_PRETRAIN or NYU_RGB_SCENENET_PRETRAIN):
+        if model_path == (SegConfig.SUN_RGB_SCENENET_PRETRAIN or SegConfig.NYU_RGB_SCENENET_PRETRAIN):
             unet = un.UNet(14)
-        elif model_path == (SUN_RGBD_SCENENET_PRETRAIN or NYU_RGBD_SCENENET_PRETRAIN):
+        elif model_path == (SegConfig.SUN_RGBD_SCENENET_PRETRAIN or SegConfig.NYU_RGBD_SCENENET_PRETRAIN):
             unet = un.UNetRGBD(14)
 
         unet.load_state_dict(torch.load(model_path + '.pth'))

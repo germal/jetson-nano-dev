@@ -31,6 +31,7 @@ class Video(QtCore.QObject):
                 self.rgb_signal.emit(qt_rgb_image)
 
                 # display depth image
+                depth_image = cv2.cvtColor(depth_colormap, cv2.COLOR_BGR2RGB)
                 height, width, channel = depth_colormap.shape
                 qt_depth_image = QtGui.QImage(depth_colormap.data,
                                         width,

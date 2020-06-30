@@ -51,9 +51,8 @@ class TrackingModel(object):
 
             for bb_xyxy in bbox_xyxy:
                 bbox_tlwh.append(self.deepsort._xyxy_to_tlwh(bb_xyxy))
-
             
-            return cv2.cvtColor(result_img, cv2.COLOR_RGB2BGR)
+            return result_img
 
         else:
-            return cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
+            return frame

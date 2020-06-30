@@ -15,6 +15,7 @@ from PyQt5.QtWidgets import *
 from PyQt5 import QtGui
 
 from segmentation_service import SegmentationService
+from tracking_service import TrackingService
 from video import Video
 
 
@@ -41,11 +42,17 @@ if __name__ == '__main__':
     video.moveToThread(video_thread)
 
     # Segmentation service thread
-    seg_inf_thread = QtCore.QThread()
-    seg_inf_thread.start()
+    segmentation_thread = QtCore.QThread()
+    segmentation_thread.start()
     segmentationService = SegmentationService(camera)
-    segmentationService.moveToThread(seg_inf_thread)
+    segmentationService.moveToThread(segmentation_thread)
     
+    # Tracking service thread
+    tracking_thread = QtCore.QThread()
+    tracking_thread.start()
+    trackingService = TrackingService(camera)
+    trackingService.moveToThread(tracking_thread)
+
     # Qt View
     rgb_viewer = ImageViewer()
     depth_viewer = ImageViewer()
@@ -61,6 +68,7 @@ if __name__ == '__main__':
 
     start_button = QPushButton('Start')
     seg_button = QPushButton('Segmentation')
+    tracking_button = QPushButton('Tracking')
     clear_button = QPushButton('Clear')
 
     vertical_layout = QVBoxLayout()
@@ -68,20 +76,21 @@ if __name__ == '__main__':
     vertical_layout.addWidget(table_viewer.table)
     vertical_layout.addWidget(start_button)
     vertical_layout.addWidget(seg_button)
-    vertical_layout.addWidget(clear_button)
-
+    vertical_layout.addWidget(tracking_button)
+    
     layout_widget = QWidget()
     layout_widget.setLayout(vertical_layout)
 
     # Button Event
     start_button.clicked.connect(video.start)
     seg_button.clicked.connect(segmentationService.start)
-    clear_button.clicked.connect(table_viewer.clear)
+    tracking_button.clicked.connect(trackingService.start)
 
     # Qt Event
     video.rgb_signal.connect(rgb_viewer.setImage)
     video.depth_signal.connect(depth_viewer.setImage)
     segmentationService.seg_signal.connect(seg_viewer.setImage)
+    trackingService.tracking_signal.connect(tracking_viewer.setImage)
 
     main_window = QMainWindow()
     main_window.setCentralWidget(layout_widget)

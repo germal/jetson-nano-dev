@@ -76,6 +76,7 @@ class PointCloudApp:
         
         return self.out
 
+
     def mouse_cb(self, event, x, y, flags, param):
         if event == cv2.EVENT_LBUTTONDOWN:
             self.state.mouse_btns[0] = True
@@ -133,9 +134,11 @@ class PointCloudApp:
         proj[v[:, 2] < znear] = np.nan
         return proj
 
+
     def view(self, v):
         """apply view transformation on vector array"""
         return np.dot(v - self.state.pivot, self.state.rotation) + self.state.pivot - self.state.translation
+
 
     def line3d(self, pt1, pt2, color=(0x80, 0x80, 0x80), thickness=1):
         """draw a 3d line from pt1 to pt2"""
@@ -149,6 +152,7 @@ class PointCloudApp:
         inside, p0, p1 = cv2.clipLine(rect, p0, p1)
         if inside:
             cv2.line(self.out, p0, p1, color, thickness, cv2.LINE_AA)
+
 
     def grid(self, pos, rotation=np.eye(3), size=1, n=10, color=(0x80, 0x80, 0x80)):
         """draw a grid on xz plane"""
@@ -164,6 +168,7 @@ class PointCloudApp:
             self.line3d(self.view(pos + np.dot((-s2, 0, z), rotation)),
                 self.view(pos + np.dot((s2, 0, z), rotation)), color)
 
+
     def axes(self, pos, rotation=np.eye(3), size=0.075, thickness=2):
         """draw 3d axes"""
         self.line3d(pos, pos +
@@ -172,6 +177,7 @@ class PointCloudApp:
             np.dot((0, size, 0), rotation), (0, 0xff, 0), thickness)
         self.line3d(pos, pos +
             np.dot((size, 0, 0), rotation), (0, 0, 0xff), thickness)
+
 
     def frustum(self, intrinsics, color=(0x40, 0x40, 0x40)):
         """draw camera's frustum"""
@@ -194,20 +200,18 @@ class PointCloudApp:
             self.line3d(self.view(bottom_right), self.view(bottom_left), color)
             self.line3d(self.view(bottom_left), self.view(top_left), color)
 
+
     def pointcloud(self, verts, texcoords, color, painter=True):
         """draw point cloud with optional painter's algorithm"""
         if painter:
-            # Painter's algo, sort points from back to front
-
-            # get reverse sorted indices by z (in view-space)
-            # https://gist.github.com/stevenvo/e3dad127598842459b68
             v = self.view(verts)
             s = v[:, 2].argsort()[::-1]
             proj = self.project(v[s])
         else:
             proj = self.project(self.view(verts))
 
-            # proj *= 0.5**state.decimate
+        if self.state.scale:
+            proj *= 0.5 ** self.state.decimate
 
         # proj now contains 2d image coordinates
         j, i = proj.astype(np.uint32).T

@@ -7,7 +7,7 @@ from config import *
 
 
 class SegmentationModel():
-    def __init__(self, model=running_model, on_gpu=on_gpu, eval_mode=eval_mode):
+    def __init__(self, model=running_model, on_gpu=on_gpu_seg, eval_mode=eval_mode):
         self.on_gpu = on_gpu
         self.eval_mode = eval_mode
 

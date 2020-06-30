@@ -16,7 +16,7 @@ class SegmentationService(QtCore.QObject):
     def __init__(self, camera, parent=None):
         super(SegmentationService, self).__init__(parent)
         self.camera = camera
-        self.seg_model = SegmentationModel(running_model, on_gpu, eval_mode)
+        self.seg_model = SegmentationModel(running_model, on_gpu_seg, eval_mode)
 
     @QtCore.pyqtSlot()
     def start(self):

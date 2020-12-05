@@ -15,8 +15,7 @@ Jetson products usually support `MIPI-CSI` camera.
 
 Jetson nano has a connector compatible with RPi camera. A device driver of `IMX 291` is already installed and can be used by just connecting the camera. It is compatible with V2 RPi camera moddule not V1.
 
-![rpi_camera_connect](../img/rpi-connect-1.jpg)
-![rpi_camera_connect](../img/rpi-connect-2.jpg)
+![rpi_camera_connect](../docs/rpi-connect.png)
 
 1. Open the `J13` camera connector
 2. Insert the ribborn cable with the blue side facing out
@@ -42,3 +41,19 @@ gst-launch-1.0 nvarguscamerasrc ! nvoverlaysink
 ```sh
 gst-launch-1.0 nvarguscamerasrc ! 'video/x-raw(memory:NVMM),width=3820, height=2464, framerate=21/1, format=NV12' ! nvvidconv flip-method=0 ! 'video/x-raw,width=960, height=616' ! nvvidconv ! nvegltransform ! nveglglessink -e
 ```
+
+# Notes
+
+## v4l2-ctl
+
+```sh
+sudo apt install v4l-utils
+```
+
+Use `v4l2-ctl` for control when developing camera drivers.
+
+```sh
+v4l2-ctl -d /dev/video0 --list-formats-ext
+```
+
+Check supported image foramts and resolutions for specific devices.
